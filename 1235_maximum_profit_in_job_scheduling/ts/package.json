@@ -1,0 +1,8 @@
+{
+  "name": "job-scheduling-benchmark",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "ts": "node ts/main-optimized.ts"
+  }
+}
