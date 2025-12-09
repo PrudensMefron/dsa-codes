@@ -1,1 +1,0 @@
-/data/data/com.termux/files/home/dsa/1235_maximum_profit_in_job_scheduling/rust/target/release/job_scheduling: /data/data/com.termux/files/home/dsa/1235_maximum_profit_in_job_scheduling/rust/src/main.rs

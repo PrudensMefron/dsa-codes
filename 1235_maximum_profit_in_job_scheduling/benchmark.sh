@@ -33,8 +33,16 @@ run_lang() {
   local dir=$2
   local cmd=$3
   echo -n "Rodando $lang... "
-  
-  local output=$(cd "$dir" && eval "$cmd" 2>&1)
+
+  local output
+  if ! output=$(cd "$dir" && eval "$cmd" 2>&1); then
+    echo "FALHOU"
+    times[$lang]="ERROR"
+    profits[$lang]=0
+    echo "$lang: ERRO" >> results.txt
+    return
+  fi
+
   local time_line=$(echo "$output" | grep -oE '[0-9]*\.?[0-9]+ ms' | head -1)
   local profit_line=$(echo "$output" | grep -oE 'Lucro: [0-9]+' | grep -oE '[0-9]+')
 
@@ -45,7 +53,8 @@ run_lang() {
     time_ms="ERROR"
     echo "FALHOU"
   else
-    times[$lang]=$(printf "%.0f" "$time_ms")
+    # CORREÇÃO: ARREDONDA COM awk
+    times[$lang]=$(awk "BEGIN {printf \"%d\", $time_ms + 0.5}")
     profits[$lang]=$profit
     echo "$time_ms ms"
   fi
@@ -53,17 +62,17 @@ run_lang() {
   echo "$lang: $time_ms ms → Lucro: $profit" >> results.txt
 }
 
-# EXECUTA
-run_lang "TypeScript"     "ts"   "node --max-old-space-size=8192 main.ts"
-run_lang "TypeScript Opt" "ts"   "node --max-old-space-size=8192 main-optimized.ts"
-run_lang "Go"             "go"   "./main"
-run_lang "C"              "c"    "./main"
-run_lang "Rust"           "rust" "./main"
+# === EXECUTA ===
+run_lang "Typescript - Node"          "ts" "node --max-old-space-size=8192 main-node.ts"
+run_lang "Typescript - Bun"           "ts" "bun main-bun.ts"
+run_lang "Go"               "go" "./main"
+run_lang "C"                "c"  "./main"
+run_lang "Rust"             "rust" "./main"
 
-# GRÁFICO
+# === GRÁFICO ===
 echo
 echo "===================================================="
-echo "               GRÁFICO DE PERFORMANCE"
+echo "          GRÁFICO DE PERFORMANCE"
 echo "===================================================="
 
 max_time=0
@@ -81,11 +90,11 @@ print_bar() {
   local profit=$3
 
   if [[ "$time" == "ERROR" ]]; then
-    printf "%-16s | %s\n" "$lang" "ERROR"
+    printf "%-18s | %s\n" "$lang" "ERROR"
     return
   fi
 
-  local bar_length=$(awk "BEGIN {printf \"%d\", ($time * $BAR_WIDTH) / $max_time + 0.5}")
+  local bar_length=$(awk "BEGIN {printf \"%d\", ($time * $BAR_WIDTH) / ($max_time > 0 ? $max_time : 1) + 0.5}")
   (( bar_length < 1 && time > 0 )) && bar_length=1
 
   local bar=""
@@ -95,19 +104,19 @@ print_bar() {
   local color=""
   [[ $lang == "Rust" ]] && color="\033[0;32m"
   [[ $lang == "C" ]] && color="\033[0;34m"
-  [[ $lang == "TypeScript Opt" ]] && color="\033[1;35m"
-  [[ $lang == "TypeScript" ]] && color="\033[0;31m"
+  [[ $lang == "Typescript - Node" ]] && color="\033[0;35m"
+  [[ $lang == "Typescript - Bun" ]] && color="\033[0;31m"
   [[ $lang == "Go" ]] && color="\033[1;33m"
   local NC="\033[0m"
 
-  printf "${color}%-16s |%s %6d ms${NC} (Lucro: %d)\n" "$lang" "$bar" "$time" "$profit"
+  printf "${color}%-18s |%s %6d ms${NC} (Lucro: %d)\n" "$lang" "$bar" "$time" "$profit"
 }
 
-for lang in "TypeScript" "TypeScript Opt" "Go" "C" "Rust"; do
+for lang in "Typescript - Node" "Typescript - Bun" "Go" "C" "Rust"; do
   print_bar "$lang" "${times[$lang]}" "${profits[$lang]}"
 done
 
-# CAMPEÃO
+# === CAMPEÃO ===
 fastest=""
 fastest_time=999999
 for lang in "${!times[@]}"; do

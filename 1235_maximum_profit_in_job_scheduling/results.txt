@@ -1,7 +1,7 @@
 ====================================================
-TypeScript: 6964.25 ms → Lucro: 41050385
-TypeScript Opt: 5740.10 ms → Lucro: 41050385
-Go: 1522.23 ms → Lucro: 49399613
-C: 509.31 ms → Lucro: 49522908
-Rust: 471.68 ms → Lucro: 49442676
+Typescript - Node: 477.48 ms → Lucro: 41050385
+Typescript - Bun: 550.07 ms → Lucro: 41050385
+Go: 276.97 ms → Lucro: 49622684
+C: 227.46 ms → Lucro: 49522908
+Rust: 126.02 ms → Lucro: 49377777
 ====================================================
